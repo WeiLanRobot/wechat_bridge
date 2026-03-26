@@ -1,0 +1,28 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.weilan.wechat_bridge">
+
+    <!-- 微信包名查询，Android 11+ 必须 -->
+    <queries>
+        <package android:name="com.tencent.mm"/>
+    </queries>
+
+    <application>
+        <!-- 微信回调 Activity，用于接收微信返回 -->
+        <activity
+            android:name=".WechatCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- FileProvider 用于分享文件到微信 -->
+        <provider
+            android:name=".WechatFileProvider"
+            android:authorities="${applicationId}.wechat_bridge.file_provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/wechat_bridge_file_paths" />
+        </provider>
+    </application>
+</manifest>

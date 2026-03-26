@@ -1,0 +1,40 @@
+PODS:
+  - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
+  - wechat_bridge (0.0.1):
+    - Flutter
+    - WechatOpenSDK-Full
+  - WechatOpenSDK-Full (1.9.2-0)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - wechat_bridge (from `.symlinks/plugins/wechat_bridge/ios`)
+  - WechatOpenSDK-Full (from `https://github.com/liujunliuhong/WechatOpenSDK.git`, tag `1.9.2-0`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+  wechat_bridge:
+    :path: ".symlinks/plugins/wechat_bridge/ios"
+  WechatOpenSDK-Full:
+    :git: https://github.com/liujunliuhong/WechatOpenSDK.git
+    :tag: 1.9.2-0
+
+CHECKOUT OPTIONS:
+  WechatOpenSDK-Full:
+    :git: https://github.com/liujunliuhong/WechatOpenSDK.git
+    :tag: 1.9.2-0
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  wechat_bridge: 05f71fa0904d9a6c039598b3f61c9ffed04cc407
+  WechatOpenSDK-Full: 22def1c3639992d8e999363976e52024e74d9ca2
+
+PODFILE CHECKSUM: 4eea78e7387a2070d6e04469ea59f1eaaebdb6e7
+
+COCOAPODS: 1.16.2
