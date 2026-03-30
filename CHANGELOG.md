@@ -1,3 +1,9 @@
+## 1.2.0
+
+* 修复 iOS 26 上 Flutter 不正确转发 Universal Link 回调导致微信登录失败的问题
+* 新增 `WechatBridgePlugin.handleUniversalLink()` 静态方法供 AppDelegate 手动调用
+* 最低支持版本改为 iOS 13.0
+
 ## 1.1.1
 
 * 移除冗余文档注释

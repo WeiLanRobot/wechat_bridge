@@ -8,12 +8,21 @@ public class WechatBridgePlugin: NSObject, FlutterPlugin, FlutterApplicationLife
     private var handleInitialWXReqFlag = false
     private var initialWXReqRunnable: (() -> Void)?
 
+    private static var sharedInstance: WechatBridgePlugin?
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "wechat_bridge", binaryMessenger: registrar.messenger())
         let instance = WechatBridgePlugin()
         instance.channel = channel
+        sharedInstance = instance
         registrar.addMethodCallDelegate(instance, channel: channel)
         registrar.addApplicationDelegate(instance)
+    }
+
+    /// iOS 26 Flutter 不正确转发 Universal Link，AppDelegate 可直接调用此方法
+    public static func handleUniversalLink(_ userActivity: NSUserActivity) -> Bool {
+        guard let instance = sharedInstance else { return false }
+        return WXApi.handleOpenUniversalLink(userActivity, delegate: instance)
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -78,7 +87,6 @@ public class WechatBridgePlugin: NSObject, FlutterPlugin, FlutterApplicationLife
             initialWXReqRunnable?()
             initialWXReqRunnable = nil
         }
-        // 幂等：第二次及后续调用直接返回成功，避免 PlatformException(FAILED)
         result(nil)
     }
 
@@ -92,30 +100,55 @@ public class WechatBridgePlugin: NSObject, FlutterPlugin, FlutterApplicationLife
         req.scope = scope
         req.state = args["state"] as? String ?? ""
         let type = args["type"] as? Int ?? 0
+
         if type == 0 {
             WXApi.send(req) { _ in }
+            result(nil)
         } else if type == 1 {
-            var vc: UIViewController?
-            if #available(iOS 13.0, *) {
-                vc = UIApplication.shared.connectedScenes
-                    .compactMap { $0 as? UIWindowScene }
-                    .flatMap { $0.windows }
-                    .first { $0.isKeyWindow }?.rootViewController
-            } else {
-                vc = UIApplication.shared.keyWindow?.rootViewController
+            authWithViewController(req: req, result: result)
+        } else {
+            WXApi.send(req) { _ in }
+            result(nil)
+        }
+    }
+
+    private func authWithViewController(req: SendAuthReq, result: @escaping FlutterResult) {
+        var vc: UIViewController?
+        if #available(iOS 13.0, *) {
+            let scenes = UIApplication.shared.connectedScenes
+            for scene in scenes {
+                if let windowScene = scene as? UIWindowScene {
+                    for window in windowScene.windows {
+                        if window.isKeyWindow {
+                            vc = window.rootViewController
+                            break
+                        }
+                    }
+                    if vc != nil { break }
+                }
             }
-            if let vc = vc {
-                WXApi.sendAuthReq(req, viewController: vc, delegate: self) { _ in }
-            } else {
-                // Flutter 场景下可能拿不到 VC，回退到普通方式
-                WXApi.send(req) { _ in }
+            if vc == nil {
+                for scene in scenes {
+                    if let windowScene = scene as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        vc = window.rootViewController
+                        break
+                    }
+                }
             }
+        } else {
+            vc = UIApplication.shared.keyWindow?.rootViewController
+        }
+
+        if let vc = vc {
+            WXApi.sendAuthReq(req, viewController: vc, delegate: self) { _ in }
+        } else {
+            WXApi.send(req) { _ in }
         }
         result(nil)
     }
 
     private func handleQRAuth(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        // 扫码登录需要 WechatAuthSDK，WechatOpenSDK-Full 可能包含
         result(FlutterError(code: "UNIMPLEMENTED", message: "扫码登录请使用 wechat_kit", details: nil))
     }
 
@@ -144,7 +177,6 @@ public class WechatBridgePlugin: NSObject, FlutterPlugin, FlutterApplicationLife
             result(FlutterError(code: "INVALID_ARGUMENT", message: "text and scene required", details: nil))
             return
         }
-
 
         let req = SendMessageToWXReq()
         req.bText = true
@@ -336,7 +368,7 @@ public class WechatBridgePlugin: NSObject, FlutterPlugin, FlutterApplicationLife
         return WXApi.handleOpen(url, delegate: self)
     }
 
-    public func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([Any]) -> Void) -> Bool {
+    public func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         return WXApi.handleOpenUniversalLink(userActivity, delegate: self)
     }
 }

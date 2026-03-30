@@ -1,6 +1,6 @@
 name: wechat_bridge
 description: Flutter 版微信登录/分享/支付 SDK，API 与 wechat_kit 兼容。
-version: 1.1.1
+version: 1.2.0
 homepage: https://github.com/WeiLanRobot/wechat_bridge
 repository: https://github.com/WeiLanRobot/wechat_bridge
 issue_tracker: https://github.com/WeiLanRobot/wechat_bridge/issues
